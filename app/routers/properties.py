@@ -55,6 +55,8 @@ def get_properties(
     location: Optional[str] = Query(None, description="Localização: cidade ou bairro"),
     bedrooms: Optional[int] = Query(None, description="Número mínimo de quartos"),
     query: Optional[str] = Query(None, description="Palavra-chave (título/descrição)"),
+    limit: int = Query(50, ge=1, le=200, description="Limite de itens por página"),
+    offset: int = Query(0, ge=0, description="Offset para paginação"),
     db: Session = Depends(get_db),
 ):
     """
@@ -65,6 +67,7 @@ def get_properties(
     - GET /api/properties?purpose=alugar&max_price=3000
     - GET /api/properties?location=Pinheiros
     - GET /api/properties?bedrooms=3&query=piscina
+    - GET /api/properties?limit=20&offset=40
     """
     q = db.query(Property).filter(Property.is_active.is_(True))
 
@@ -99,7 +102,7 @@ def get_properties(
     favorite_ids = _favorite_ids(db)
     return [
         _property_to_dict(prop, is_favorite=prop.id in favorite_ids)
-        for prop in q.all()
+        for prop in q.offset(offset).limit(limit).all()
     ]
 
 

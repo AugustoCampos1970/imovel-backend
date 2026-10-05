@@ -57,6 +57,10 @@ def get_properties(
     query: Optional[str] = Query(None, description="Palavra-chave (título/descrição)"),
     limit: int = Query(50, ge=1, le=200, description="Limite de itens por página"),
     offset: int = Query(0, ge=0, description="Offset para paginação"),
+    sort: Optional[str] = Query(
+        None,
+        description="Ordenação: price_asc, price_desc, area_desc, recent (padrão: recent)",
+    ),
     db: Session = Depends(get_db),
 ):
     """
@@ -68,6 +72,7 @@ def get_properties(
     - GET /api/properties?location=Pinheiros
     - GET /api/properties?bedrooms=3&query=piscina
     - GET /api/properties?limit=20&offset=40
+    - GET /api/properties?sort=price_asc
     """
     q = db.query(Property).filter(Property.is_active.is_(True))
 
@@ -98,6 +103,14 @@ def get_properties(
         q = q.filter(
             or_(Property.title.ilike(pattern), Property.description.ilike(pattern))
         )
+
+    order_map = {
+        "price_asc": Property.price.asc(),
+        "price_desc": Property.price.desc(),
+        "area_desc": Property.area_sqm.desc(),
+        "recent": Property.created_at.desc(),
+    }
+    q = q.order_by(order_map.get(sort, Property.created_at.desc()))
 
     favorite_ids = _favorite_ids(db)
     return [

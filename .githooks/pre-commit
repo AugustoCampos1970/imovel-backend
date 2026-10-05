@@ -1,0 +1,74 @@
+#!/bin/sh
+# ===========================================================================
+#  HOOK pre-commit — Validacao de autores autorizados
+# ---------------------------------------------------------------------------
+#  So permite commit se o e-mail do AUTOR e do COMMITER estiverem na
+#  lista de e-mails autorizados abaixo. Qualquer outro e-mail
+#  (ex.: peixeweb@gmail.com ou 140914200+peixeweb@users.noreply.github.com)
+#  e REJEITADO.
+#
+#  Instalacao: git config core.hooksPath .githooks
+# ===========================================================================
+
+# -- Lista de e-mails autorizados (um por linha, minusculas) ---------------
+AUTHORIZED_EMAILS="
+janayna.nasc2022@gmail.com
+fsilvasmbg@gmail.com
+mara.rakel2016@outlook.com
+1977campos7@gmail.com
+"
+
+# -- Resolve os e-mails que o git vai usar para o commit -------------------
+#  Ordem de prioridade do git: env var > config local > global > system
+AUTHOR_EMAIL="${GIT_AUTHOR_EMAIL:-$(git config user.email)}"
+COMMITTER_EMAIL="${GIT_COMMITTER_EMAIL:-$(git config user.email)}"
+
+# Normaliza para minusculas (remove espacos/newlines)
+AUTHOR_EMAIL=$(echo "$AUTHOR_EMAIL" | tr '[:upper:]' '[:lower:]' | tr -d ' \n\t')
+COMMITTER_EMAIL=$(echo "$COMMITTER_EMAIL" | tr '[:upper:]' '[:lower:]' | tr -d ' \n\t')
+
+# -- Funcao: verifica se um e-mail pertence a lista de autorizados ---------
+is_authorized() {
+  local candidate="$1"
+  local email
+  for email in $AUTHORIZED_EMAILS; do
+    if [ "$candidate" = "$email" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# -- Valida ambos os e-mails -----------------------------------------------
+AUTHOR_OK=0
+COMMITTER_OK=0
+is_authorized "$AUTHOR_EMAIL" && AUTHOR_OK=1
+is_authorized "$COMMITTER_EMAIL" && COMMITTER_OK=1
+
+if [ "$AUTHOR_OK" -eq 1 ] && [ "$COMMITTER_OK" -eq 1 ]; then
+  exit 0
+fi
+
+# -- Rejeita o commit com mensagem clara -----------------------------------
+echo ""
+echo "=========================================================="
+echo "  COMMIT REJEITADO — autor nao autorizado neste repositorio"
+echo "=========================================================="
+echo "  E-mail do autor:    '${AUTHOR_EMAIL}'"
+echo "  E-mail do commiter: '${COMMITTER_EMAIL}'"
+echo ""
+echo "  E-mails permitidos:"
+echo "    - janayna.nasc2022@gmail.com"
+echo "    - fsilvasmbg@gmail.com"
+echo "    - mara.rakel2016@outlook.com"
+echo "    - 1977campos7@gmail.com"
+echo ""
+echo "  Para permitir o commit, configure o git localmente com um"
+echo "  e-mail autorizado e rode novamente:"
+echo ""
+echo "    git config user.name  \"Seu Nome\""
+echo "    git config user.email \"e-mail.autorizado@gmail.com\""
+echo "    git commit -m \"...\""
+echo "=========================================================="
+echo ""
+exit 1

@@ -65,7 +65,7 @@ Documentação interativa: http://localhost:8000/docs
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | GET | `/` | Saúde da API |
-| GET | `/api/properties` | Lista imóveis (filtros: `property_type`, `purpose`, `max_price`, `location`, `bedrooms`, `query`) |
+| GET | `/api/properties` | Lista imóveis (filtros: `property_type`, `purpose`, `max_price`, `location`, `bedrooms`, `query`; paginação: `limit`, `offset`; ordenação: `sort` = `price_asc`, `price_desc`, `area_desc`, `recent`) |
 | GET | `/api/properties/{id}` | Detalhes de um imóvel |
 | POST | `/api/properties` | Cria um imóvel |
 | POST | `/api/favorites` | Alterna favorito (`{property_id, is_favorite}`) |

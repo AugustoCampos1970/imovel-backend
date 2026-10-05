@@ -119,6 +119,22 @@ def get_property(property_id: int, db: Session = Depends(get_db)):
 @router.post("/properties", response_model=dict, status_code=201)
 def create_property(property_data: PropertyIn, db: Session = Depends(get_db)):
     """Cria um novo imóvel (utilizado pelo formulário "Anunciar" no frontend)."""
+    if not property_data.title.strip():
+        raise HTTPException(status_code=400, detail="O título do imóvel é obrigatório.")
+    if not property_data.location.strip() or not property_data.city.strip():
+        raise HTTPException(status_code=400, detail="Localização e cidade são obrigatórias.")
+    if property_data.price <= 0:
+        raise HTTPException(status_code=400, detail="O preço deve ser maior que zero.")
+    if (
+        property_data.bedrooms < 0
+        or property_data.bathrooms < 0
+        or property_data.area_sqm < 0
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Quartos, banheiros e área não podem ser negativos.",
+        )
+
     prop = Property(**property_data.model_dump())
     db.add(prop)
     db.commit()

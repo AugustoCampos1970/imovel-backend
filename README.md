@@ -1,30 +1,80 @@
-# ⚙️ Imóvel - Backend
+# ⚙️ Imóvel — Backend
 
-API do sistema de gestão de imóveis.
+API do portal imobiliário ImóvelFácil (FastAPI + SQLAlchemy).
 
 ## 🛠️ Tecnologias
 
-- Python
-- FastAPI / Flask
-- MySQL / PostgreSQL
+- Python 3.14
+- FastAPI
+- SQLAlchemy 2.x
+- SQLite (banco local) ou PostgreSQL/Supabase (via `DATABASE_URL`)
 
 ## 🚀 Como rodar localmente
 
 ```bash
-# Instalar dependências
+# 1. Criar ambiente virtual (uma vez)
+python -m venv venv
+venv\Scripts\activate   # Windows
+
+# 2. Instalar dependências (uma vez)
 pip install -r requirements.txt
 
-# Rodar o servidor
-python main.py
+# 3. Rodar o servidor
+uvicorn main:app --reload --port 8000
 ```
+
+Na primeira execução, o banco `imovelfacil.db` é criado automaticamente e populado com 12 imóveis de exemplo e 1 usuário de teste.
+
+## 🔗 Banco de dados
+
+- **Local (padrão):** SQLite em `imovelfacil.db` (arquivo local, não versionado pelo Git).
+- **Produção (PostgreSQL/Supabase):** defina a variável de ambiente `DATABASE_URL` antes de rodar:
+
+```bash
+export DATABASE_URL="postgresql+psycopg2://user:senha@host:5432/imovefacil"
+```
+
+O script `database.sql` contém o schema para PostgreSQL/Supabase (com RLS).
 
 ## 📁 Estrutura
 
 ```
-backend/
-├── main.py        # Arquivo principal
-└── database.sql   # Estrutura do banco de dados
+imovel-backend/
+├── main.py              # Ponto de entrada (uvicorn main:app)
+├── requirements.txt     # Dependências Python
+├── database.sql         # Schema PostgreSQL/Supabase (referência)
+├── imovelfacil.db       # Banco local (criado automaticamente, não versionado)
+└── app/
+    ├── main.py          # App FastAPI + CORS + lifespan (seed)
+    ├── config.py        # DATABASE_URL e constantes
+    ├── database.py      # Engine + sessão SQLAlchemy
+    ├── models.py        # Tabelas: users, properties, favorites
+    ├── schemas.py       # Modelos Pydantic
+    ├── security.py      # Hash de senha (PBKDF2)
+    ├── seed.py          # Dados de exemplo (seed no primeiro startup)
+    └── routers/
+        ├── properties.py # GET/POST /api/properties, GET /api/stats
+        ├── favorites.py # POST /api/favorites
+        └── auth.py      # POST /api/auth/register | /login, GET /api/auth/users
 ```
+
+## 🧪 Endpoints (Postman)
+
+Documentação interativa: http://localhost:8000/docs
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/` | Saúde da API |
+| GET | `/api/properties` | Lista imóveis (filtros: `property_type`, `purpose`, `max_price`, `location`, `bedrooms`, `query`) |
+| GET | `/api/properties/{id}` | Detalhes de um imóvel |
+| POST | `/api/properties` | Cria um imóvel |
+| POST | `/api/favorites` | Alterna favorito (`{property_id, is_favorite}`) |
+| POST | `/api/auth/register` | Cadastro de usuário |
+| POST | `/api/auth/login` | Login |
+| GET | `/api/auth/users` | Lista usuários (dev) |
+| GET | `/api/stats` | Estatísticas do portal |
+
+Usuário de teste seed: `augusto@email.com` / `123456`.
 
 ## 🔗 Repositório do Frontend
 

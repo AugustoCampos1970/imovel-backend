@@ -42,6 +42,12 @@ def register_user(payload: UserRegister, db: Session = Depends(get_db)):
     if not payload.name.strip():
         raise HTTPException(status_code=400, detail="O nome é obrigatório.")
 
+    if len(payload.name.strip()) > 120:
+        raise HTTPException(
+            status_code=400,
+            detail="O nome deve ter no máximo 120 caracteres.",
+        )
+
     if len(payload.password) < 6:
         raise HTTPException(
             status_code=400, detail="A senha deve ter pelo menos 6 caracteres."

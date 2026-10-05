@@ -29,7 +29,7 @@ app = FastAPI(
 
 # Habilita CORS para o frontend React (Vite roda em http://localhost:5173).
 # Em desenvolvimento o Vite faz proxy de /api para a porta 8000;
-# estas origens cobrem o caso em que o front acessa a API diretamente.
+# em produção o front publicado no GitHub Pages acessa a API diretamente.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -37,6 +37,7 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://augustocampos1970.github.io",
     ],
     allow_credentials=True,
     allow_methods=["*"],

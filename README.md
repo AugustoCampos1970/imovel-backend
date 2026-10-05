@@ -36,6 +36,16 @@ export DATABASE_URL="postgresql+psycopg2://user:senha@host:5432/imovefacil"
 
 O script `database.sql` contém o schema para PostgreSQL/Supabase (com RLS).
 
+## ☁️ Deploy no Render (grátis)
+
+1. Crie a conta em https://render.com e conecte o repositório `imovel-backend`
+2. **New +** → **Web Service** → selecione o repositório (o `render.yaml` é lido automaticamente)
+3. O banco SQLite é criado e populado (seed) no startup — sem passos extras
+4. Para banco persistente: crie um PostgreSQL (Supabase), execute o `database.sql` e defina a env `DATABASE_URL` no serviço (ver `.env.example`)
+5. Após o deploy, a API fica em `https://<nome-do-servico>.onrender.com` (`/docs` e `/api/health` para testar)
+
+> O plano gratuito do Render dorme após ~15 min sem uso; a primeira requisição pode levar ~30–60s para acordar o serviço.
+
 ## 📁 Estrutura
 
 ```

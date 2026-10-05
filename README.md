@@ -76,6 +76,28 @@ Documentação interativa: http://localhost:8000/docs
 
 Usuário de teste seed: `augusto@email.com` / `123456`.
 
+## 📨 Exemplo de payload (POST /api/properties)
+
+```json
+{
+  "title": "Casa com piscina no bairro Jardim América",
+  "description": "Casa de 4 quartos, 3 banheiros, área de 300m² com piscina.",
+  "property_type": "Casa",
+  "purpose": "comprar",
+  "price": 1250000.00,
+  "location": "Rua das Acácias, 100 - Jardim América",
+  "neighborhood": "Jardim América",
+  "city": "Goiânia",
+  "state": "GO",
+  "bedrooms": 4,
+  "bathrooms": 3,
+  "area_sqm": 300,
+  "featured": true
+}
+```
+
+A listagem aceita paginação: `GET /api/properties?limit=20&offset=40` (padrão `limit=50`).
+
 ## 🔐 Autenticação
 
 O cadastro e o login retornam um `token` de sessão com validade de **24 horas** (`expires_in: 86400` segundos). O token deve ser enviado no header `Authorization` em requisições autenticadas futuras.

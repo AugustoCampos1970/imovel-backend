@@ -76,6 +76,10 @@ Documentação interativa: http://localhost:8000/docs
 
 Usuário de teste seed: `augusto@email.com` / `123456`.
 
+## 🔐 Autenticação
+
+O cadastro e o login retornam um `token` de sessão com validade de **24 horas** (`expires_in: 86400` segundos). O token deve ser enviado no header `Authorization` em requisições autenticadas futuras.
+
 ## 🔗 Repositório do Frontend
 
 [imovel-frontend](https://github.com/AugustoCampos1970/imovel-frontend)

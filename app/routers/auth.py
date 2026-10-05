@@ -35,7 +35,7 @@ def register_user(payload: UserRegister, db: Session = Depends(get_db)):
         "password": "123456"
     }
 
-    Resposta: dados públicos do usuário e um token de sessão.
+    Resposta: dados públicos do usuário, um token de sessão e o tempo de validade.
     """
     email = payload.email.strip().lower()
 
@@ -70,6 +70,7 @@ def register_user(payload: UserRegister, db: Session = Depends(get_db)):
     return {
         **_public_user(user),
         "token": f"token-{user.id}",
+        "expires_in": 86400,
         "message": "Usuário cadastrado com sucesso!",
     }
 
@@ -94,6 +95,7 @@ def login_user(payload: UserLogin, db: Session = Depends(get_db)):
     return {
         **_public_user(user),
         "token": f"token-{user.id}",
+        "expires_in": 86400,
         "message": "Login realizado com sucesso!",
     }
 

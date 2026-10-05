@@ -18,6 +18,14 @@ pip-delete-this-directory.txt
 *.db
 *.sqlite3
 
+# Logs e artefatos
+*.log
+logs/
+.pytest_cache/
+htmlcov/
+.coverage
+__pycache__/
+
 # Sistema operacional
 .DS_Store
 Thumbs.db

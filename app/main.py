@@ -9,6 +9,8 @@ from app.database import SessionLocal
 from app.routers import auth, favorites, properties
 from app.seed import seed_if_empty
 
+API_VERSION = "1.1.0"
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,7 +23,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="ImóvelFácil API",
     description="API do portal imobiliário ImóvelFácil",
-    version="1.0.0",
+    version=API_VERSION,
     lifespan=lifespan,
 )
 
@@ -50,3 +52,9 @@ app.include_router(auth.router)
 def root():
     """Endpoint de verificação de saúde da API."""
     return {"message": "ImóvelFácil API funcionando! Acesse /docs para a documentação."}
+
+
+@app.get("/api/health")
+def health_check():
+    """Health check da API: retorna status e versão atual."""
+    return {"status": "ok", "version": API_VERSION}

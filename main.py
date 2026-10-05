@@ -4,6 +4,7 @@ ImóvelFácil - Backend API
 Portal imobiliário construído com FastAPI + Uvicorn + SQLAlchemy.
 
 Endpoints:
+- GET  /api/health         → Health check da API (status + versão)
 - GET  /api/properties        → Lista imóveis com filtros (tipo, finalidade, preço, localização, quartos, palavra-chave)
 - GET  /api/properties/{id}   → Detalhes de um imóvel específico
 - POST /api/properties        → Cria um novo imóvel

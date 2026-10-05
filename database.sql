@@ -63,6 +63,13 @@ CREATE INDEX IF NOT EXISTS idx_properties_bedrooms       ON public.properties (b
 CREATE INDEX IF NOT EXISTS idx_properties_featured       ON public.properties (featured) WHERE featured = TRUE;
 CREATE INDEX IF NOT EXISTS idx_properties_is_active      ON public.properties (is_active);
 
+-- Índices compostos para ordenação e filtros combinados
+-- Suportam: ?sort=price_asc/price_desc (price), ?sort=area_desc (area_sqm),
+--           ?sort=recent (created_at) e filtros city+purpose comuns na vitrine.
+CREATE INDEX IF NOT EXISTS idx_properties_purpose_price     ON public.properties (purpose, price);
+CREATE INDEX IF NOT EXISTS idx_properties_purpose_created   ON public.properties (purpose, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_properties_city_purpose      ON public.properties (city, purpose);
+
 
 -- ============================================================================
 -- 3. TABELA: favorites (favoritos)

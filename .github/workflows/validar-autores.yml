@@ -1,0 +1,69 @@
+name: validar-autores
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validar-autores:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout completo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validar e-mails dos autores
+        shell: bash
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          ALLOWED_EMAILS=(
+            "janayna.nasc2022@gmail.com"
+            "fsilvasmbg@gmail.com"
+            "mara.rakel2016@outlook.com"
+            "1977campos7@gmail.com"
+          )
+
+          is_allowed() {
+            local candidate="${1,,}"
+            for email in "${ALLOWED_EMAILS[@]}"; do
+              [[ "$candidate" == "$email" ]] && return 0
+            done
+            return 1
+          }
+
+          ZERO="0000000000000000000000000000000000000000"
+          if [[ -n "${PR_BASE:-}" && "$PR_BASE" != "$ZERO" ]]; then
+            COMMITS=$(git rev-list "${PR_BASE}..${PR_HEAD}")
+          elif [[ -n "${PUSH_BEFORE:-}" && "$PUSH_BEFORE" != "$ZERO" ]] \
+               && git cat-file -e "${PUSH_BEFORE}^{commit}" 2>/dev/null; then
+            COMMITS=$(git rev-list "${PUSH_BEFORE}..${PUSH_AFTER}")
+          else
+            COMMITS=$(git rev-list --max-count=20 "$PUSH_AFTER")
+          fi
+
+          failures=0
+          for commit in $COMMITS; do
+            email=$(git log -1 --format='%ae' "$commit")
+            author=$(git log -1 --format='%an' "$commit")
+            if is_allowed "$email"; then
+              echo "[OK] ${commit:0:7} - $author <$email>"
+            else
+              echo "[REJEITADO] ${commit:0:7} - $author <$email>"
+              failures=$((failures + 1))
+            fi
+          done
+
+          if [[ "$failures" -gt 0 ]]; then
+            echo "$failures commit(s) possuem autor fora da lista autorizada."
+            exit 1
+          fi

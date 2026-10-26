@@ -1,117 +1,107 @@
-# ⚙️ Imóvel — Backend
+# ⚙️ ImóvelFácil — Backend
 
-API do portal imobiliário ImóvelFácil (FastAPI + SQLAlchemy).
+API FastAPI da Entrega 4, com autenticação Bearer, anúncios por usuário, favoritos individuais, edição, exclusão lógica, filtros, paginação e estatísticas dinâmicas.
 
-## 🛠️ Tecnologias
+## Tecnologias
 
-- Python 3.14
+- Python 3.12+ (validado também em Python 3.14)
 - FastAPI
 - SQLAlchemy 2.x
-- SQLite (banco local) ou PostgreSQL/Supabase (via `DATABASE_URL`)
+- SQLite no desenvolvimento
+- PostgreSQL no ambiente de produção
 
-## 🚀 Como rodar localmente
+## Execução local
 
-```bash
-# 1. Criar ambiente virtual (uma vez)
+```powershell
 python -m venv venv
-venv\Scripts\activate   # Windows
-
-# 2. Instalar dependências (uma vez)
+venv\Scripts\activate
 pip install -r requirements.txt
-
-# 3. Rodar o servidor
 uvicorn main:app --reload --port 8000
 ```
 
-Na primeira execução, o banco `imovelfacil.db` é criado automaticamente e populado com 12 imóveis de exemplo e 1 usuário de teste.
+- Swagger: `http://localhost:8000/docs`
+- Health check: `http://localhost:8000/api/health`
+- Usuário seed: `augusto@email.com` / `123456`
 
-## 🔗 Banco de dados
+Na primeira execução, a API cria 12 imóveis. Bancos SQLite antigos recebem a coluna `owner_id` sem apagar os anúncios existentes.
 
-- **Local (padrão):** SQLite em `imovelfacil.db` (arquivo local, não versionado pelo Git).
-- **Produção (PostgreSQL/Supabase):** defina a variável de ambiente `DATABASE_URL` antes de rodar:
+## Configuração
 
-```bash
-export DATABASE_URL="postgresql+psycopg2://user:senha@host:5432/imovefacil"
+Copie `.env.example` ou configure as variáveis no ambiente:
+
+```env
+DATABASE_URL=postgresql+psycopg2://usuario:senha@host:5432/imovefacil
+JWT_SECRET_KEY=um-segredo-longo-e-aleatorio
+JWT_EXPIRE_SECONDS=86400
 ```
 
-O script `database.sql` contém o schema para PostgreSQL/Supabase (com RLS).
+Em desenvolvimento, `DATABASE_URL` é opcional e o padrão é `imovelfacil.db`. Em produção, use obrigatoriamente um PostgreSQL persistente.
 
-## ☁️ Deploy no Render (grátis)
+O arquivo `database.sql` corresponde aos modelos SQLAlchemy atuais: IDs inteiros, tabela de usuários, proprietário do anúncio e favoritos com restrição única por usuário/imóvel.
 
-1. Crie a conta em https://render.com e conecte o repositório `imovel-backend`
-2. **New +** → **Web Service** → selecione o repositório (o `render.yaml` é lido automaticamente)
-3. O banco SQLite é criado e populado (seed) no startup — sem passos extras
-4. Para banco persistente: crie um PostgreSQL (Supabase), execute o `database.sql` e defina a env `DATABASE_URL` no serviço (ver `.env.example`)
-5. Após o deploy, a API fica em `https://<nome-do-servico>.onrender.com` (`/docs` e `/api/health` para testar)
+## Autenticação
 
-> O plano gratuito do Render dorme após ~15 min sem uso; a primeira requisição pode levar ~30–60s para acordar o serviço.
+Cadastro e login retornam um JWT HS256 com validade padrão de 24 horas:
 
-## 📁 Estrutura
+```http
+POST /api/auth/login
+Content-Type: application/json
 
-```
-imovel-backend/
-├── main.py              # Ponto de entrada (uvicorn main:app)
-├── requirements.txt     # Dependências Python
-├── database.sql         # Schema PostgreSQL/Supabase (referência)
-├── imovelfacil.db       # Banco local (criado automaticamente, não versionado)
-└── app/
-    ├── main.py          # App FastAPI + CORS + lifespan (seed)
-    ├── config.py        # DATABASE_URL e constantes
-    ├── database.py      # Engine + sessão SQLAlchemy
-    ├── models.py        # Tabelas: users, properties, favorites
-    ├── schemas.py       # Modelos Pydantic
-    ├── security.py      # Hash de senha (PBKDF2)
-    ├── seed.py          # Dados de exemplo (seed no primeiro startup)
-    └── routers/
-        ├── properties.py # GET/POST /api/properties, GET /api/stats
-        ├── favorites.py # POST /api/favorites
-        └── auth.py      # POST /api/auth/register | /login, GET /api/auth/users
-```
-
-## 🧪 Endpoints (Postman)
-
-Documentação interativa: http://localhost:8000/docs
-
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/` | Saúde da API |
-| GET | `/api/properties` | Lista imóveis (filtros: `property_type`, `purpose`, `max_price`, `location`, `bedrooms`, `query`; paginação: `limit`, `offset`; ordenação: `sort` = `price_asc`, `price_desc`, `area_desc`, `recent`) |
-| GET | `/api/properties/{id}` | Detalhes de um imóvel |
-| POST | `/api/properties` | Cria um imóvel |
-| POST | `/api/favorites` | Alterna favorito (`{property_id, is_favorite}`) |
-| POST | `/api/auth/register` | Cadastro de usuário |
-| POST | `/api/auth/login` | Login |
-| GET | `/api/auth/users` | Lista usuários (dev) |
-| GET | `/api/stats` | Estatísticas do portal |
-
-Usuário de teste seed: `augusto@email.com` / `123456`.
-
-## 📨 Exemplo de payload (POST /api/properties)
-
-```json
 {
-  "title": "Casa com piscina no bairro Jardim América",
-  "description": "Casa de 4 quartos, 3 banheiros, área de 300m² com piscina.",
-  "property_type": "Casa",
-  "purpose": "comprar",
-  "price": 1250000.00,
-  "location": "Rua das Acácias, 100 - Jardim América",
-  "neighborhood": "Jardim América",
-  "city": "Goiânia",
-  "state": "GO",
-  "bedrooms": 4,
-  "bathrooms": 3,
-  "area_sqm": 300,
-  "featured": true
+  "email": "augusto@email.com",
+  "password": "123456"
 }
 ```
 
-A listagem aceita paginação: `GET /api/properties?limit=20&offset=40` (padrão `limit=50`).
+Nas rotas protegidas, envie:
 
-## 🔐 Autenticação
+```http
+Authorization: Bearer <token>
+```
 
-O cadastro e o login retornam um `token` de sessão com validade de **24 horas** (`expires_in: 86400` segundos). O token deve ser enviado no header `Authorization` em requisições autenticadas futuras.
+## Endpoints da Entrega 4
 
-## 🔗 Repositório do Frontend
+| Método | Rota | Autenticação | Descrição |
+|---|---|---:|---|
+| GET | `/api/health` | Não | Saúde e versão da API |
+| POST | `/api/auth/register` | Não | Cadastro e início da sessão |
+| POST | `/api/auth/login` | Não | Login e token Bearer |
+| GET | `/api/auth/me` | Sim | Usuário da sessão |
+| GET | `/api/properties` | Opcional | Listagem, filtros, ordenação e paginação |
+| GET | `/api/properties?with_meta=true` | Opcional | Listagem com total e indicadores de página |
+| GET | `/api/properties/mine` | Sim | Anúncios do usuário |
+| GET | `/api/properties/{id}` | Opcional | Detalhes do imóvel |
+| POST | `/api/properties` | Sim | Cria anúncio com proprietário |
+| PUT | `/api/properties/{id}` | Sim | Edita anúncio do proprietário |
+| DELETE | `/api/properties/{id}` | Sim | Exclusão lógica do anúncio |
+| GET | `/api/favorites` | Sim | Favoritos do usuário |
+| POST | `/api/favorites` | Sim | Adiciona ou remove favorito |
+| DELETE | `/api/favorites/{id}` | Sim | Remove favorito |
+| GET | `/api/stats` | Não | Estatísticas reais do banco |
 
-[imovel-frontend](https://github.com/AugustoCampos1970/imovel-frontend)
+### Filtros de imóveis
+
+- `property_type`, `purpose`, `query`
+- `min_price`, `max_price`
+- `location`, `city`, `state`
+- `bedrooms`, `bathrooms`
+- `min_area`, `max_area`
+- `featured`
+- `sort`: `recent`, `price_asc`, `price_desc`, `area_desc`
+- `limit`, `offset`, `with_meta`
+
+## Testes
+
+Com a API na porta 8000:
+
+```powershell
+python testes_api.py
+```
+
+A suíte cobre 34 cenários: autenticação assinada, isolamento entre usuários, filtros, paginação, criação, propriedade, edição, exclusão lógica, favoritos e estatísticas.
+
+## Deploy no Render
+
+O `render.yaml` configura Python 3.12, health check e geração do segredo JWT. No painel do Render ainda é necessário fornecer `DATABASE_URL` com um PostgreSQL persistente.
+
+O plano gratuito pode levar alguns segundos para acordar. O frontend apresenta uma mensagem durante esse cold start.

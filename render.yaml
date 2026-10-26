@@ -1,5 +1,4 @@
 # Render Web Service — ImóvelFácil Backend (FastAPI)
-# https://render.com/docs/blueprint-spec
 services:
   - type: web
     name: imovel-backend
@@ -11,7 +10,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.0
-      # Opcional: banco PostgreSQL/Supabase persistente.
-      # Sem esta env, o backend usa SQLite local (recriado no startup com seed).
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_EXPIRE_SECONDS
+        value: 86400
+      # Configure uma URL PostgreSQL persistente no painel do Render.
       - key: DATABASE_URL
         sync: false

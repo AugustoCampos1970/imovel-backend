@@ -9,12 +9,12 @@ from app.database import SessionLocal
 from app.routers import auth, favorites, properties
 from app.seed import seed_if_empty
 
-API_VERSION = "1.1.0"
+API_VERSION = "1.2.0"
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Cria as tabelas e popula com dados de exemplo na primeira execução
+    # Migra, cria as tabelas e popula dados de exemplo na primeira execução.
     with SessionLocal() as db:
         seed_if_empty(db)
     yield
@@ -27,9 +27,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Habilita CORS para o frontend React (Vite roda em http://localhost:5173).
-# Em desenvolvimento o Vite faz proxy de /api para a porta 8000;
-# em produção o front publicado no GitHub Pages acessa a API diretamente.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -51,11 +48,9 @@ app.include_router(auth.router)
 
 @app.get("/")
 def root():
-    """Endpoint de verificação de saúde da API."""
     return {"message": "ImóvelFácil API funcionando! Acesse /docs para a documentação."}
 
 
 @app.get("/api/health")
 def health_check():
-    """Health check da API: retorna status e versão atual."""
     return {"status": "ok", "version": API_VERSION}

@@ -1,5 +1,6 @@
 """Seed: popula o banco com dados de exemplo na primeira execução."""
 
+from app.migrations import migrate_legacy_schema
 from app.models import Property, User
 from app.security import hash_password
 
@@ -204,24 +205,32 @@ SEED_USERS = [
 
 
 def seed_if_empty(db) -> None:
-    """Cria tabelas e popula com dados de exemplo caso o banco esteja vazio."""
+    """Cria, migra e popula o banco sem apagar dados existentes."""
     from app.database import Base, engine
     from app import models  # noqa: F401 - garante o registro dos modelos
 
     Base.metadata.create_all(bind=engine)
+    migrate_legacy_schema()
+
+    seed_user = db.query(User).filter(User.email == SEED_USERS[0]["email"]).first()
+    if seed_user is None:
+        item = SEED_USERS[0]
+        seed_user = User(
+            name=item["name"],
+            email=item["email"],
+            password=hash_password(item["password"]),
+        )
+        db.add(seed_user)
+        db.commit()
+        db.refresh(seed_user)
 
     if db.query(Property).count() == 0:
         for item in SEED_PROPERTIES:
-            db.add(Property(**item))
+            db.add(Property(**item, owner_id=seed_user.id))
         db.commit()
-
-    if db.query(User).count() == 0:
-        for item in SEED_USERS:
-            db.add(
-                User(
-                    name=item["name"],
-                    email=item["email"],
-                    password=hash_password(item["password"]),
-                )
-            )
+    else:
+        # Imóveis de bancos antigos não possuíam proprietário.
+        db.query(Property).filter(Property.owner_id.is_(None)).update(
+            {Property.owner_id: seed_user.id}, synchronize_session=False
+        )
         db.commit()

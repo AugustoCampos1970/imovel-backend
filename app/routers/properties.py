@@ -11,6 +11,7 @@ from app.database import get_db
 from app.dependencies import get_current_user, get_optional_user
 from app.models import Favorite, Property, User
 from app.schemas import (
+    ActionResponse,
     MessageOut,
     PaginatedProperties,
     PropertyIn,
@@ -226,7 +227,7 @@ def update_property(
     return property_to_dict(prop, is_favorite=prop.id in favorite_ids)
 
 
-@router.delete("/properties/{property_id}", response_model=MessageOut)
+@router.delete("/properties/{property_id}", response_model=ActionResponse)
 def delete_property(
     property_id: int,
     db: Session = Depends(get_db),
@@ -236,7 +237,12 @@ def delete_property(
     prop = _require_owned_property(db, property_id, current_user)
     prop.is_active = False
     db.commit()
-    return {"message": "Imóvel excluído com sucesso."}
+    return {
+        "success": True,
+        "message": "Imóvel excluído com sucesso.",
+        "action": "delete",
+        "affected_id": property_id,
+    }
 
 
 @router.get("/stats", response_model=StatsOut)

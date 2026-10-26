@@ -200,3 +200,11 @@ class StatsOut(BaseModel):
 
 class MessageOut(BaseModel):
     message: str
+
+
+class ActionResponse(BaseModel):
+    success: bool = True
+    message: str
+    action: Literal["update", "delete", "create"]
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    affected_id: int

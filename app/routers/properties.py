@@ -219,6 +219,15 @@ def update_property(
     updates = property_data.model_dump(exclude_unset=True, exclude_none=True)
     if not updates:
         raise HTTPException(status_code=400, detail="Nenhuma alteração informada.")
+    
+    blocked = {"owner_id", "created_at"}
+    for field in updates:
+        if field in blocked:
+            raise HTTPException(
+                status_code=400,
+                detail=f"O campo '{field}' não pode ser alterado após o cadastro."
+            )
+
     for field, value in updates.items():
         setattr(prop, field, value)
     db.commit()

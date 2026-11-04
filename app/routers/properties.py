@@ -256,22 +256,22 @@ def delete_property(
 
 @router.get("/stats", response_model=StatsOut)
 def get_stats(db: Session = Depends(get_db)):
-    """Calcula estatísticas reais a partir do banco de dados."""
+    """Calcula estatísticas dinâmicas em tempo real a partir da base de imóveis atualizada."""
     active = Property.is_active.is_(True)
     available = db.query(Property).filter(active).count()
     for_sale = (
         db.query(Property)
-        .filter(active, Property.purpose == "comprar")
+        .filter(active, func.lower(Property.purpose) == "comprar")
         .count()
     )
     for_rent = (
         db.query(Property)
-        .filter(active, Property.purpose == "alugar")
+        .filter(active, func.lower(Property.purpose) == "alugar")
         .count()
     )
     launches = (
         db.query(Property)
-        .filter(active, Property.purpose == "lancamento")
+        .filter(active, func.lower(Property.purpose) == "lancamento")
         .count()
     )
     type_rows = (
@@ -287,6 +287,12 @@ def get_stats(db: Session = Depends(get_db)):
         .filter(active)
         .count()
     )
+
+    by_type = {"Apartamento": 0, "Casa": 0, "Cobertura": 0, "Terreno": 0}
+    for p_type, count in type_rows:
+        if p_type:
+            by_type[p_type] = count
+
     return {
         "available_properties": available,
         "for_sale": for_sale,
@@ -297,5 +303,5 @@ def get_stats(db: Session = Depends(get_db)):
         "sold_properties": 0,
         "happy_clients": total_users,
         "years_experience": date.today().year - 2010,
-        "by_type": {name: count for name, count in type_rows},
+        "by_type": by_type,
     }

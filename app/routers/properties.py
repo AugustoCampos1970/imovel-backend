@@ -124,7 +124,6 @@ def get_properties(
             or_(Property.title.ilike(pattern), Property.description.ilike(pattern))
         )
 
-    total = result.count()
     order_map = {
         "price_asc": Property.price.asc(),
         "price_desc": Property.price.desc(),
@@ -142,6 +141,8 @@ def get_properties(
 
     if not with_meta:
         return items
+
+    total = result.count()
     return {
         "items": items,
         "total": total,

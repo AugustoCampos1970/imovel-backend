@@ -116,6 +116,8 @@ class PropertyOut(BaseModel):
 
 
 class PaginatedProperties(BaseModel):
+    """Envelope com itens e metadados de paginação."""
+
     items: List[PropertyOut]
     total: int
     limit: int

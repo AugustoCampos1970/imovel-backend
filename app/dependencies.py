@@ -10,7 +10,7 @@ from app.database import get_db
 from app.models import User
 from app.security import decode_access_token
 
-bearer_scheme = HTTPBearer(auto_error=False)
+bearer_scheme = HTTPBearer(auto_error=False, description="Autenticação JWT Bearer HS256")
 
 
 def _resolve_user(

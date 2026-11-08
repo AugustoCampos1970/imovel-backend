@@ -70,7 +70,12 @@ def login_user(payload: UserLogin, db: Session = Depends(get_db)):
     return _auth_response(user, "Login realizado com sucesso!")
 
 
-@router.get("/me", response_model=UserPublic)
+@router.get(
+    "/me",
+    response_model=UserPublic,
+    summary="Dados da sessão ativa",
+    description="Retorna os dados públicos do usuário identificado pelo token Bearer JWT.",
+)
 def get_session_user(current_user: User = Depends(get_current_user)):
-    """Retorna o usuário identificado pelo token Bearer."""
+    """Retorna o usuário autenticado na sessão ativa."""
     return _public_user(current_user)

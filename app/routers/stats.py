@@ -1,0 +1,1 @@
+from fastapi import APIRouter, Depends; from sqlalchemy.orm import Session; from app.dependencies import get_db; router = APIRouter(); @router.get("/api/stats") def get_stats(db: Session = Depends(get_db)): return {"total_imoveis": db.execute("SELECT count(*) FROM imoveis").scalar() or 0}
